@@ -4,6 +4,7 @@ const port = 5000
 const cookieParser = require('cookie-parser');
 const config = require('./config/key');
 
+const { auth } = require('./middleware/auth');
 const { User } = require('./models/User');
 
 app.use(express.json());
@@ -18,7 +19,7 @@ mongoose.connect(config.mongoURI, {
 app.get('/', (req, res) => res.send('수정'))
 
 
-app.post('/register', (req, res) => {
+app.post('/api/users/register', (req, res) => {
     const user = new User(req.body)
 
     user.save((err, userInfo) => {
@@ -29,7 +30,7 @@ app.post('/register', (req, res) => {
     })
 })
 
-app.post('/login', (req, res) => {
+app.post('/api/users/login', (req, res) => {
 
   //1. 요청된 Email을 데이터베이스에서 있는지 찾는다
   User.findOne({ email: req.body.email }, (err, user) => {
@@ -57,6 +58,19 @@ app.post('/login', (req, res) => {
   
     })
 
+  })
+})
+
+app.get('/api/users/auth', auth, (req, res) => {
+  res.status(200).json({
+      _id: req.user._id,
+      isAdmin: req.user.role === 0 ? false : true, //0: 일반, 123..: 관리자
+      isAuth: true,
+      email: req.user.email,
+      name: req.user.name,
+      lastname: req.user.lastname,
+      role: req.user.role,
+      image: req.user.image
   })
 })
 
